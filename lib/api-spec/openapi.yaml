@@ -1,22 +1,38 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Gorilla Guardians API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: auth
+  - name: products
+  - name: categories
+  - name: artisans
+  - name: experiences
+  - name: bookings
+  - name: orders
+  - name: reviews
+  - name: notifications
+  - name: messages
+  - name: feedback
+  - name: events
+  - name: stories
+  - name: impact
+  - name: wishlist
+  - name: cart
+  - name: analytics
+  - name: delivery
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +40,1404 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # AUTH
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  # CATEGORIES
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List product categories
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  # PRODUCTS
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products with filters
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+        - name: artisanId
+          in: query
+          schema:
+            type: integer
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: sort
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Products list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/featured:
+    get:
+      operationId: getFeaturedProducts
+      tags: [products]
+      summary: Get featured products
+      responses:
+        "200":
+          description: Featured products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get product by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # ARTISANS
+  /artisans:
+    get:
+      operationId: listArtisans
+      tags: [artisans]
+      summary: List artisans
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Artisans list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Artisan"
+    post:
+      operationId: createArtisan
+      tags: [artisans]
+      summary: Create artisan profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArtisanInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Artisan"
+
+  /artisans/{id}:
+    get:
+      operationId: getArtisan
+      tags: [artisans]
+      summary: Get artisan by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Artisan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Artisan"
+    patch:
+      operationId: updateArtisan
+      tags: [artisans]
+      summary: Update artisan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArtisanUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Artisan"
+
+  # EXPERIENCES
+  /experiences:
+    get:
+      operationId: listExperiences
+      tags: [experiences]
+      summary: List experiences
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Experiences list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExperienceListResponse"
+    post:
+      operationId: createExperience
+      tags: [experiences]
+      summary: Create experience
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExperienceInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Experience"
+
+  /experiences/{id}:
+    get:
+      operationId: getExperience
+      tags: [experiences]
+      summary: Get experience by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Experience
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Experience"
+    patch:
+      operationId: updateExperience
+      tags: [experiences]
+      summary: Update experience
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExperienceUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Experience"
+
+  # BOOKINGS
+  /bookings:
+    get:
+      operationId: listBookings
+      tags: [bookings]
+      summary: List bookings
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Bookings list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Create booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}:
+    get:
+      operationId: getBooking
+      tags: [bookings]
+      summary: Get booking by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+    patch:
+      operationId: updateBooking
+      tags: [bookings]
+      summary: Update booking status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  # ORDERS
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List orders
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Orders list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderListResponse"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get order by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    patch:
+      operationId: updateOrder
+      tags: [orders]
+      summary: Update order status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  # DELIVERY TRACKING
+  /delivery/{orderId}:
+    get:
+      operationId: getDeliveryTracking
+      tags: [delivery]
+      summary: Get delivery tracking for order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Delivery tracking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryTracking"
+    patch:
+      operationId: updateDeliveryTracking
+      tags: [delivery]
+      summary: Update delivery tracking
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeliveryTrackingUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryTracking"
+
+  # REVIEWS
+  /reviews:
+    get:
+      operationId: listReviews
+      tags: [reviews]
+      summary: List reviews
+      parameters:
+        - name: productId
+          in: query
+          schema:
+            type: integer
+        - name: experienceId
+          in: query
+          schema:
+            type: integer
+        - name: artisanId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reviews list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Create review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+
+  /reviews/{id}:
+    patch:
+      operationId: updateReview
+      tags: [reviews]
+      summary: Update review status (admin moderation)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+
+  # NOTIFICATIONS
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List user notifications
+      parameters:
+        - name: unreadOnly
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    patch:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: All marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # MESSAGES
+  /conversations:
+    get:
+      operationId: listConversations
+      tags: [messages]
+      summary: List conversations
+      responses:
+        "200":
+          description: Conversations list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+    post:
+      operationId: createConversation
+      tags: [messages]
+      summary: Create or get conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConversationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+
+  /messages:
+    get:
+      operationId: listMessages
+      tags: [messages]
+      summary: List messages in a conversation
+      parameters:
+        - name: conversationId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Messages list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message in a conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageInput"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  # FEEDBACK
+  /feedback:
+    get:
+      operationId: listFeedback
+      tags: [feedback]
+      summary: List all feedback (admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Feedback list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Feedback"
+    post:
+      operationId: submitFeedback
+      tags: [feedback]
+      summary: Submit feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedbackInput"
+      responses:
+        "201":
+          description: Submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Feedback"
+
+  /feedback/{id}:
+    patch:
+      operationId: updateFeedback
+      tags: [feedback]
+      summary: Respond to feedback (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedbackUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Feedback"
+
+  # EVENTS
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List events
+      parameters:
+        - name: upcoming
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Events list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      operationId: createEvent
+      tags: [events]
+      summary: Create event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get event by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+    patch:
+      operationId: updateEvent
+      tags: [events]
+      summary: Update event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  # STORIES (Cultural Content)
+  /stories:
+    get:
+      operationId: listStories
+      tags: [stories]
+      summary: List cultural stories
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Stories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Story"
+    post:
+      operationId: createStory
+      tags: [stories]
+      summary: Create story
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Story"
+
+  /stories/{id}:
+    get:
+      operationId: getStory
+      tags: [stories]
+      summary: Get story by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Story
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Story"
+
+  # IMPACT
+  /impact:
+    get:
+      operationId: getImpactStats
+      tags: [impact]
+      summary: Get impact statistics
+      responses:
+        "200":
+          description: Impact stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImpactStats"
+
+  # WISHLIST
+  /wishlist:
+    get:
+      operationId: getWishlist
+      tags: [wishlist]
+      summary: Get user wishlist
+      responses:
+        "200":
+          description: Wishlist items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WishlistItem"
+    post:
+      operationId: addToWishlist
+      tags: [wishlist]
+      summary: Add item to wishlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WishlistItemInput"
+      responses:
+        "201":
+          description: Added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WishlistItem"
+
+  /wishlist/{productId}:
+    delete:
+      operationId: removeFromWishlist
+      tags: [wishlist]
+      summary: Remove item from wishlist
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # CART
+  /cart:
+    get:
+      operationId: getCart
+      tags: [cart]
+      summary: Get cart
+      responses:
+        "200":
+          description: Cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    post:
+      operationId: addToCart
+      tags: [cart]
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CartItemInput"
+      responses:
+        "200":
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    delete:
+      operationId: clearCart
+      tags: [cart]
+      summary: Clear cart
+      responses:
+        "200":
+          description: Cart cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /cart/{productId}:
+    patch:
+      operationId: updateCartItem
+      tags: [cart]
+      summary: Update cart item quantity
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CartItemUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    delete:
+      operationId: removeFromCart
+      tags: [cart]
+      summary: Remove item from cart
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  # ANALYTICS
+  /analytics/dashboard:
+    get:
+      operationId: getDashboardStats
+      tags: [analytics]
+      summary: Get admin dashboard stats
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /analytics/sales:
+    get:
+      operationId: getSalesAnalytics
+      tags: [analytics]
+      summary: Get sales analytics over time
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, year]
+      responses:
+        "200":
+          description: Sales data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SalesDataPoint"
+
+  /analytics/top-products:
+    get:
+      operationId: getTopProducts
+      tags: [analytics]
+      summary: Get top selling products
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Top products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopProduct"
+
+  /analytics/top-experiences:
+    get:
+      operationId: getTopExperiences
+      tags: [analytics]
+      summary: Get most booked experiences
+      responses:
+        "200":
+          description: Top experiences
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopExperience"
+
+  # DONATIONS
+  /donations:
+    get:
+      operationId: listDonations
+      tags: [artisans]
+      summary: List donations
+      responses:
+        "200":
+          description: Donations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Donation"
+    post:
+      operationId: createDonation
+      tags: [artisans]
+      summary: Make a donation to artisan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DonationInput"
+      responses:
+        "201":
+          description: Donation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Donation"
+
+  # USERS (admin)
+  /users:
+    get:
+      operationId: listUsers
+      tags: [auth]
+      summary: List all users (admin)
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [auth]
+      summary: Get user by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    patch:
+      operationId: updateUser
+      tags: [auth]
+      summary: Update user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +1445,1224 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    # AUTH
+    RegisterInput:
+      type: object
+      required: [email, password, name, role]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        name:
+          type: string
+        role:
+          type: string
+          enum: [super_admin, admin, staff, artisan, customer]
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+      required: [user, token]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [super_admin, admin, staff, artisan, customer]
+        avatar:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        language:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, email, name, role, isActive, createdAt]
+
+    UserUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        avatar:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        language:
+          type: string
+        isActive:
+          type: boolean
+        role:
+          type: string
+
+    # CATEGORY
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: ["string", "null"]
+        image:
+          type: ["string", "null"]
+        productCount:
+          type: integer
+      required: [id, name, slug]
+
+    # PRODUCT
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        culturalSignificance:
+          type: ["string", "null"]
+        price:
+          type: number
+        discountPrice:
+          type: ["number", "null"]
+        stock:
+          type: integer
+        sku:
+          type: ["string", "null"]
+        categoryId:
+          type: integer
+        artisanId:
+          type: integer
+        images:
+          type: array
+          items:
+            type: string
+        materials:
+          type: ["string", "null"]
+        weight:
+          type: ["number", "null"]
+        dimensions:
+          type: ["string", "null"]
+        featured:
+          type: boolean
+        active:
+          type: boolean
+        averageRating:
+          type: ["number", "null"]
+        reviewCount:
+          type: integer
+        artisan:
+          $ref: "#/components/schemas/Artisan"
+        category:
+          $ref: "#/components/schemas/Category"
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, slug, description, price, stock, categoryId, artisanId, images, featured, active, reviewCount, createdAt]
+
+    ProductListResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required: [products, total, page, totalPages]
+
+    ProductInput:
+      type: object
+      required: [name, description, price, stock, categoryId, artisanId, images]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        culturalSignificance:
+          type: string
+        price:
+          type: number
+        discountPrice:
+          type: number
+        stock:
+          type: integer
+        sku:
+          type: string
+        categoryId:
+          type: integer
+        artisanId:
+          type: integer
+        images:
+          type: array
+          items:
+            type: string
+        materials:
+          type: string
+        weight:
+          type: number
+        dimensions:
+          type: string
+        featured:
+          type: boolean
+        active:
+          type: boolean
+
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        culturalSignificance:
+          type: string
+        price:
+          type: number
+        discountPrice:
+          type: number
+        stock:
+          type: integer
+        categoryId:
+          type: integer
+        images:
+          type: array
+          items:
+            type: string
+        materials:
+          type: string
+        featured:
+          type: boolean
+        active:
+          type: boolean
+
+    # ARTISAN
+    Artisan:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        name:
+          type: string
+        photo:
+          type: ["string", "null"]
+        biography:
+          type: ["string", "null"]
+        skills:
+          type: array
+          items:
+            type: string
+        story:
+          type: ["string", "null"]
+        galleryImages:
+          type: array
+          items:
+            type: string
+        videoUrl:
+          type: ["string", "null"]
+        productCount:
+          type: integer
+        totalSales:
+          type: integer
+        averageRating:
+          type: ["number", "null"]
+        totalDonations:
+          type: number
+        isConservationAmbassador:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, name, skills, galleryImages, productCount, totalSales, totalDonations, isConservationAmbassador, createdAt]
+
+    ArtisanInput:
+      type: object
+      required: [userId, name]
+      properties:
+        userId:
+          type: integer
+        name:
+          type: string
+        photo:
+          type: string
+        biography:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        story:
+          type: string
+        galleryImages:
+          type: array
+          items:
+            type: string
+        videoUrl:
+          type: string
+        isConservationAmbassador:
+          type: boolean
+
+    ArtisanUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        photo:
+          type: string
+        biography:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        story:
+          type: string
+        galleryImages:
+          type: array
+          items:
+            type: string
+        videoUrl:
+          type: string
+        isConservationAmbassador:
+          type: boolean
+
+    # EXPERIENCE
+    Experience:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [guided_tour, homestay, workshop, dance_lesson, cooking_class]
+        images:
+          type: array
+          items:
+            type: string
+        videoUrl:
+          type: ["string", "null"]
+        price:
+          type: number
+        duration:
+          type: string
+        capacity:
+          type: integer
+        difficultyLevel:
+          type: ["string", "null"]
+        includedItems:
+          type: array
+          items:
+            type: string
+        meetingPoint:
+          type: ["string", "null"]
+        cancellationPolicy:
+          type: ["string", "null"]
+        active:
+          type: boolean
+        averageRating:
+          type: ["number", "null"]
+        reviewCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, title, slug, description, type, images, price, duration, capacity, includedItems, active, reviewCount, createdAt]
+
+    ExperienceListResponse:
+      type: object
+      properties:
+        experiences:
+          type: array
+          items:
+            $ref: "#/components/schemas/Experience"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required: [experiences, total, page, totalPages]
+
+    ExperienceInput:
+      type: object
+      required: [title, description, type, price, duration, capacity]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        videoUrl:
+          type: string
+        price:
+          type: number
+        duration:
+          type: string
+        capacity:
+          type: integer
+        difficultyLevel:
+          type: string
+        includedItems:
+          type: array
+          items:
+            type: string
+        meetingPoint:
+          type: string
+        cancellationPolicy:
+          type: string
+        active:
+          type: boolean
+
+    ExperienceUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        duration:
+          type: string
+        capacity:
+          type: integer
+        images:
+          type: array
+          items:
+            type: string
+        includedItems:
+          type: array
+          items:
+            type: string
+        active:
+          type: boolean
+
+    # BOOKING
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        experienceId:
+          type: integer
+        date:
+          type: string
+          format: date
+        participants:
+          type: integer
+        totalAmount:
+          type: number
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled, completed]
+        paymentStatus:
+          type: string
+          enum: [pending, paid, refunded]
+        specialRequests:
+          type: ["string", "null"]
+        experience:
+          $ref: "#/components/schemas/Experience"
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, experienceId, date, participants, totalAmount, status, paymentStatus, createdAt]
+
+    BookingInput:
+      type: object
+      required: [experienceId, date, participants]
+      properties:
+        experienceId:
+          type: integer
+        date:
+          type: string
+          format: date
+        participants:
+          type: integer
+        specialRequests:
+          type: string
+        paymentMethod:
+          type: string
+
+    BookingUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+        paymentStatus:
+          type: string
+
+    # ORDER
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        subtotal:
+          type: number
+        shippingCost:
+          type: number
+        total:
+          type: number
+        status:
+          type: string
+          enum: [pending, confirmed, packed, shipped, out_for_delivery, delivered, cancelled, refunded]
+        paymentMethod:
+          type: string
+        paymentStatus:
+          type: string
+          enum: [pending, paid, refunded]
+        shippingAddress:
+          type: string
+        shippingType:
+          type: string
+          enum: [global, pickup]
+        shippingCarrier:
+          type: ["string", "null"]
+        trackingNumber:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, items, subtotal, shippingCost, total, status, paymentMethod, paymentStatus, shippingAddress, shippingType, createdAt]
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        productName:
+          type: string
+        productImage:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+        subtotal:
+          type: number
+      required: [id, productId, productName, productImage, quantity, price, subtotal]
+
+    OrderListResponse:
+      type: object
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required: [orders, total, page, totalPages]
+
+    OrderInput:
+      type: object
+      required: [items, shippingAddress, shippingType, paymentMethod]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: integer
+              quantity:
+                type: integer
+            required: [productId, quantity]
+        shippingAddress:
+          type: string
+        shippingType:
+          type: string
+          enum: [global, pickup]
+        paymentMethod:
+          type: string
+        notes:
+          type: string
+
+    OrderUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+        paymentStatus:
+          type: string
+        trackingNumber:
+          type: string
+        shippingCarrier:
+          type: string
+        notes:
+          type: string
+
+    # DELIVERY TRACKING
+    DeliveryTracking:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        status:
+          type: string
+        trackingNumber:
+          type: ["string", "null"]
+        carrier:
+          type: ["string", "null"]
+        estimatedDelivery:
+          type: ["string", "null"]
+          format: date
+        timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackingEvent"
+        currentLocation:
+          type: ["string", "null"]
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, orderId, status, timeline, updatedAt]
+
+    TrackingEvent:
+      type: object
+      properties:
+        status:
+          type: string
+        description:
+          type: string
+        location:
+          type: ["string", "null"]
+        timestamp:
+          type: string
+          format: date-time
+      required: [status, description, timestamp]
+
+    DeliveryTrackingUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+        trackingNumber:
+          type: string
+        carrier:
+          type: string
+        estimatedDelivery:
+          type: string
+        currentLocation:
+          type: string
+        description:
+          type: string
+
+    # REVIEW
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        productId:
+          type: ["integer", "null"]
+        experienceId:
+          type: ["integer", "null"]
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        title:
+          type: ["string", "null"]
+        comment:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        isVerifiedPurchase:
+          type: boolean
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        user:
+          $ref: "#/components/schemas/User"
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, rating, comment, images, isVerifiedPurchase, status, createdAt]
+
+    ReviewInput:
+      type: object
+      required: [rating, comment]
+      properties:
+        productId:
+          type: integer
+        experienceId:
+          type: integer
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        title:
+          type: string
+        comment:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+
+    ReviewUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+
+    # NOTIFICATION
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        isRead:
+          type: boolean
+        link:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, type, title, message, isRead, createdAt]
+
+    # CONVERSATION / MESSAGE
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        participants:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        lastMessage:
+          type: ["string", "null"]
+        unreadCount:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, participants, unreadCount, updatedAt]
+
+    ConversationInput:
+      type: object
+      required: [participantId]
+      properties:
+        participantId:
+          type: integer
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        senderId:
+          type: integer
+        content:
+          type: string
+        fileUrl:
+          type: ["string", "null"]
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, conversationId, senderId, content, isRead, createdAt]
+
+    MessageInput:
+      type: object
+      required: [conversationId, content]
+      properties:
+        conversationId:
+          type: integer
+        content:
+          type: string
+        fileUrl:
+          type: string
+
+    # FEEDBACK
+    Feedback:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: ["integer", "null"]
+        type:
+          type: string
+          enum: [suggestion, issue, general]
+        subject:
+          type: string
+        message:
+          type: string
+        rating:
+          type: ["integer", "null"]
+        status:
+          type: string
+          enum: [open, in_progress, resolved]
+        adminResponse:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, type, subject, message, status, createdAt]
+
+    FeedbackInput:
+      type: object
+      required: [type, subject, message]
+      properties:
+        type:
+          type: string
+          enum: [suggestion, issue, general]
+        subject:
+          type: string
+        message:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+    FeedbackUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [open, in_progress, resolved]
+        adminResponse:
+          type: string
+
+    # EVENT
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        image:
+          type: ["string", "null"]
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: ["string", "null"]
+          format: date-time
+        location:
+          type: ["string", "null"]
+        isOnline:
+          type: boolean
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, title, slug, description, type, startDate, isOnline, active, createdAt]
+
+    EventInput:
+      type: object
+      required: [title, description, type, startDate]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        image:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        location:
+          type: string
+        isOnline:
+          type: boolean
+        active:
+          type: boolean
+
+    EventUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        image:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        location:
+          type: string
+        active:
+          type: boolean
+
+    # STORY
+    Story:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+          enum: [article, gallery, video, conservation, transformation]
+        coverImage:
+          type: ["string", "null"]
+        images:
+          type: array
+          items:
+            type: string
+        videoUrl:
+          type: ["string", "null"]
+        artisanId:
+          type: ["integer", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        published:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, title, slug, excerpt, content, type, images, tags, published, createdAt]
+
+    StoryInput:
+      type: object
+      required: [title, excerpt, content, type]
+      properties:
+        title:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+        coverImage:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        videoUrl:
+          type: string
+        artisanId:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        published:
+          type: boolean
+
+    # IMPACT
+    ImpactStats:
+      type: object
+      properties:
+        familiesSupported:
+          type: integer
+        schoolFeesFunded:
+          type: integer
+        treesProtected:
+          type: integer
+        communityIncomeGenerated:
+          type: number
+        artisansEmpowered:
+          type: integer
+        conservationAmbassadors:
+          type: integer
+        countriesReached:
+          type: integer
+        totalOrders:
+          type: integer
+        totalDonations:
+          type: number
+      required: [familiesSupported, schoolFeesFunded, treesProtected, communityIncomeGenerated, artisansEmpowered, conservationAmbassadors, countriesReached, totalOrders, totalDonations]
+
+    # WISHLIST
+    WishlistItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        productId:
+          type: integer
+        product:
+          $ref: "#/components/schemas/Product"
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, productId, createdAt]
+
+    WishlistItemInput:
+      type: object
+      required: [productId]
+      properties:
+        productId:
+          type: integer
+
+    # CART
+    Cart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+        subtotal:
+          type: number
+        itemCount:
+          type: integer
+      required: [items, subtotal, itemCount]
+
+    CartItem:
+      type: object
+      properties:
+        productId:
+          type: integer
+        product:
+          $ref: "#/components/schemas/Product"
+        quantity:
+          type: integer
+        subtotal:
+          type: number
+      required: [productId, quantity, subtotal]
+
+    CartItemInput:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId:
+          type: integer
+        quantity:
+          type: integer
+
+    CartItemUpdate:
+      type: object
+      required: [quantity]
+      properties:
+        quantity:
+          type: integer
+
+    # ANALYTICS
+    DashboardStats:
+      type: object
+      properties:
+        totalRevenue:
+          type: number
+        totalOrders:
+          type: integer
+        totalCustomers:
+          type: integer
+        totalProducts:
+          type: integer
+        totalBookings:
+          type: integer
+        pendingOrders:
+          type: integer
+        lowStockProducts:
+          type: integer
+        newCustomersThisMonth:
+          type: integer
+        revenueThisMonth:
+          type: number
+        conversionRate:
+          type: number
+      required: [totalRevenue, totalOrders, totalCustomers, totalProducts, totalBookings, pendingOrders, lowStockProducts, newCustomersThisMonth, revenueThisMonth, conversionRate]
+
+    SalesDataPoint:
+      type: object
+      properties:
+        date:
+          type: string
+        revenue:
+          type: number
+        orders:
+          type: integer
+        bookings:
+          type: integer
+      required: [date, revenue, orders, bookings]
+
+    TopProduct:
+      type: object
+      properties:
+        productId:
+          type: integer
+        name:
+          type: string
+        image:
+          type: string
+        totalSold:
+          type: integer
+        revenue:
+          type: number
+        artisanName:
+          type: string
+      required: [productId, name, image, totalSold, revenue, artisanName]
+
+    TopExperience:
+      type: object
+      properties:
+        experienceId:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+        totalBookings:
+          type: integer
+        revenue:
+          type: number
+        averageRating:
+          type: ["number", "null"]
+      required: [experienceId, title, type, totalBookings, revenue]
+
+    # DONATION
+    Donation:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        artisanId:
+          type: integer
+        amount:
+          type: number
+        message:
+          type: ["string", "null"]
+        artisan:
+          $ref: "#/components/schemas/Artisan"
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, artisanId, amount, createdAt]
+
+    DonationInput:
+      type: object
+      required: [artisanId, amount]
+      properties:
+        artisanId:
+          type: integer
+        amount:
+          type: number
+        message:
+          type: string
+        paymentMethod:
+          type: string
