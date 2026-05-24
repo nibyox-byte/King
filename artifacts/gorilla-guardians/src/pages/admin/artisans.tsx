@@ -32,10 +32,22 @@ export default function AdminArtisansPage() {
   const openNew = () => { setEditItem({ ...blank }); setIsNew(true); };
   const openEdit = (a: any) => { setEditItem({ ...a }); setIsNew(false); };
 
+  const buildArtisanPayload = (item: any) => ({
+    name: item.name,
+    photo: item.photo || undefined,
+    biography: item.bio ?? item.biography ?? undefined,
+    skills: item.skills ?? [],
+    story: item.story ?? undefined,
+    galleryImages: item.galleryImages ?? [],
+    videoUrl: item.videoUrl ?? undefined,
+    isConservationAmbassador: item.isAmbassador ?? item.isConservationAmbassador ?? false,
+  });
+
   const handleSave = () => {
     if (!editItem?.name) return;
+    const payload = buildArtisanPayload(editItem);
     if (isNew) {
-      createArtisan.mutate({ data: editItem }, {
+      createArtisan.mutate({ data: { ...payload, userId: 1 } as any }, {
         onSuccess: () => {
           toast({ title: "Artisan created" });
           setEditItem(null);
@@ -43,7 +55,7 @@ export default function AdminArtisansPage() {
         },
       });
     } else {
-      updateArtisan.mutate({ id: editItem.id, data: editItem }, {
+      updateArtisan.mutate({ id: editItem.id, data: payload }, {
         onSuccess: () => {
           toast({ title: "Artisan updated" });
           setEditItem(null);

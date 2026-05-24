@@ -28,11 +28,22 @@ export default function AdminExperiencesPage() {
 
   const experiences = Array.isArray(experiencesData) ? experiencesData : [];
 
+  const buildExpPayload = (item: any) => ({
+    title: item.title,
+    description: item.description ?? undefined,
+    price: Number(item.price),
+    duration: item.duration ?? `${item.durationHours ?? 2} hours`,
+    capacity: Number(item.maxParticipants ?? item.capacity ?? 8),
+    images: item.images ?? [],
+    includedItems: item.includedItems ?? [],
+    active: item.active ?? true,
+  });
+
   const handleSave = () => {
     if (!editItem?.title || !editItem?.price) return;
-    const payload = { ...editItem, price: Number(editItem.price), durationHours: Number(editItem.durationHours), maxParticipants: Number(editItem.maxParticipants) };
+    const payload = buildExpPayload(editItem);
     if (isNew) {
-      createExp.mutate({ data: payload }, {
+      createExp.mutate({ data: { ...payload, type: editItem.type ?? "guided_tour" } as any }, {
         onSuccess: () => {
           toast({ title: "Experience created" });
           setEditItem(null);

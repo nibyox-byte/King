@@ -16,7 +16,7 @@ import DashboardSidebar from "@/components/layout/DashboardSidebar";
 import { useAuth } from "@/lib/auth";
 import { ImageUpload } from "@/components/ui/image-upload";
 
-const blank = { title: "", excerpt: "", content: "", coverImage: "", category: "artisan_spotlight", status: "draft" };
+const blank = { title: "", excerpt: "", content: "", coverImage: "", type: "artisan_spotlight", published: false };
 
 export default function AdminStoriesPage() {
   const { toast } = useToast();
@@ -24,24 +24,60 @@ export default function AdminStoriesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [editItem, setEditItem] = useState<any>(null);
+  const [isNew, setIsNew] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const { data: storiesData, isLoading } = useListStories({ limit: 50 });
   const createStory = useCreateStory();
 
   const stories = Array.isArray(storiesData) ? storiesData : [];
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editItem?.title) return;
-    createStory.mutate(
-      { data: { ...editItem, authorId: user?.id ?? 2 } },
-      {
-        onSuccess: () => {
-          toast({ title: "Story created" });
-          setEditItem(null);
-          queryClient.invalidateQueries({ queryKey: getListStoriesQueryKey() });
-        },
+    setSaving(true);
+    try {
+      if (isNew) {
+        const payload = {
+          title: editItem.title,
+          excerpt: editItem.excerpt ?? "",
+          content: editItem.content ?? "",
+          type: editItem.type ?? "artisan_spotlight",
+          coverImage: editItem.coverImage || undefined,
+          published: editItem.published ?? false,
+        };
+        await new Promise<void>((resolve, reject) => {
+          createStory.mutate(
+            { data: payload },
+            {
+              onSuccess: () => { toast({ title: "Story created" }); resolve(); },
+              onError: () => { toast({ title: "Failed to create story", variant: "destructive" } as any); reject(); },
+            }
+          );
+        });
+      } else {
+        const payload: Record<string, unknown> = {
+          title: editItem.title,
+          excerpt: editItem.excerpt ?? "",
+          content: editItem.content ?? "",
+          type: editItem.type ?? "artisan_spotlight",
+          published: editItem.published ?? false,
+        };
+        if (editItem.coverImage !== undefined) payload.coverImage = editItem.coverImage || null;
+        const res = await fetch(`/api/stories/${editItem.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Update failed");
+        toast({ title: "Story updated" });
       }
-    );
+      setEditItem(null);
+      queryClient.invalidateQueries({ queryKey: getListStoriesQueryKey() });
+    } catch {
+      // errors already toasted above
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -54,7 +90,7 @@ export default function AdminStoriesPage() {
               <h1 className="font-serif text-2xl font-bold">Stories</h1>
               <p className="text-sm text-muted-foreground">{stories.length} stories published</p>
             </div>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2" onClick={() => setEditItem({ ...blank })}>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2" onClick={() => { setEditItem({ ...blank }); setIsNew(true); }}>
               <Plus className="w-4 h-4" /> New Story
             </Button>
           </div>
@@ -92,7 +128,7 @@ export default function AdminStoriesPage() {
                       <Link href={`/stories/${s.id}`} className="flex-1">
                         <Button size="sm" variant="outline" className="w-full gap-1.5 text-xs"><Eye className="w-3 h-3"/>View</Button>
                       </Link>
-                      <Button size="sm" variant="outline" className="flex-1 gap-1.5 text-xs" onClick={() => setEditItem({ ...s })}>
+                      <Button size="sm" variant="outline" className="flex-1 gap-1.5 text-xs" onClick={() => { setEditItem({ ...s }); setIsNew(false); }}>
                         <Edit className="w-3 h-3"/>Edit
                       </Button>
                     </div>
@@ -106,7 +142,7 @@ export default function AdminStoriesPage() {
 
       <Dialog open={!!editItem} onOpenChange={() => setEditItem(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>New Story</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{isNew ? "New Story" : "Edit Story"}</DialogTitle></DialogHeader>
           {editItem && (
             <div className="space-y-4 py-2">
               <ImageUpload label="Cover Image" value={editItem.coverImage} onChange={url => setEditItem((s: any) => ({ ...s, coverImage: url }))} />
@@ -124,21 +160,21 @@ export default function AdminStoriesPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Category</Label>
-                  <Select value={editItem.category} onValueChange={v => setEditItem((s: any) => ({ ...s, category: v }))}>
+                  <Label>Type</Label>
+                  <Select value={editItem.type ?? "artisan_spotlight"} onValueChange={v => setEditItem((s: any) => ({ ...s, type: v }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="artisan_spotlight">Artisan Spotlight</SelectItem>
                       <SelectItem value="conservation">Conservation</SelectItem>
-                      <SelectItem value="culture">Culture</SelectItem>
-                      <SelectItem value="community">Community</SelectItem>
-                      <SelectItem value="news">News</SelectItem>
+                      <SelectItem value="article">Article</SelectItem>
+                      <SelectItem value="gallery">Gallery</SelectItem>
+                      <SelectItem value="video">Video</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
                   <Label>Status</Label>
-                  <Select value={editItem.status} onValueChange={v => setEditItem((s: any) => ({ ...s, status: v }))}>
+                  <Select value={editItem.published ? "published" : "draft"} onValueChange={v => setEditItem((s: any) => ({ ...s, published: v === "published" }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="draft">Draft</SelectItem>
@@ -151,8 +187,8 @@ export default function AdminStoriesPage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditItem(null)}>Cancel</Button>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={handleSave} disabled={createStory.isPending}>
-              {createStory.isPending ? "Publishing..." : "Save Story"}
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={handleSave} disabled={saving}>
+              {saving ? "Saving..." : "Save Story"}
             </Button>
           </DialogFooter>
         </DialogContent>

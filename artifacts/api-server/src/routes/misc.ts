@@ -123,6 +123,21 @@ router.get("/stories/:id", async (req, res): Promise<void> => {
   res.json({ ...story, coverImage: story.coverImage ?? null, videoUrl: story.videoUrl ?? null, artisanId: story.artisanId ?? null, createdAt: story.createdAt.toISOString() });
 });
 
+router.patch("/stories/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const allowed = ["title", "excerpt", "content", "type", "coverImage", "images", "videoUrl", "artisanId", "tags", "published"];
+  const updateData: Record<string, unknown> = {};
+  for (const key of allowed) {
+    if (key in req.body) updateData[key] = req.body[key];
+  }
+  if (Object.keys(updateData).length === 0) { res.status(400).json({ error: "No valid fields to update" }); return; }
+  const [story] = await db.update(storiesTable).set(updateData as any).where(eq(storiesTable.id, id)).returning();
+  if (!story) { res.status(404).json({ error: "Story not found" }); return; }
+  res.json({ ...story, coverImage: story.coverImage ?? null, videoUrl: story.videoUrl ?? null, artisanId: story.artisanId ?? null, createdAt: story.createdAt.toISOString() });
+});
+
 // IMPACT STATS
 router.get("/impact", async (req, res): Promise<void> => {
   const artisanCount = await db.select({ count: sql<number>`count(*)` }).from(artisansTable);
