@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Calendar, MapPin, Globe, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export default function EventsPage() {
+  const [, navigate] = useLocation();
   const { data: events, isLoading } = useListEvents({ upcoming: true });
   const eventList = Array.isArray(events) ? events : [];
 
@@ -84,8 +85,13 @@ export default function EventsPage() {
                         )}
                       </div>
                     </div>
-                    <div className="shrink-0 flex items-center">
-                      <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground" data-testid={`button-event-register-${event.id}`}>
+                    <div className="shrink-0 flex items-center gap-2">
+                      <Link href={`/events/${event.id}`}>
+                        <Button variant="ghost" className="text-primary" data-testid={`button-event-details-${event.id}`}>
+                          View Details
+                        </Button>
+                      </Link>
+                      <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground" onClick={() => navigate(`/events/${event.id}`)} data-testid={`button-event-register-${event.id}`}>
                         Register Interest
                       </Button>
                     </div>

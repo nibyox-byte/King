@@ -19,6 +19,7 @@ import ImpactPage from "@/pages/impact";
 import StoriesPage from "@/pages/stories";
 import StoryDetailPage from "@/pages/story-detail";
 import EventsPage from "@/pages/events";
+import EventDetailPage from "@/pages/event-detail";
 import AboutPage from "@/pages/about";
 import FaqPage from "@/pages/faq";
 import ContactPage from "@/pages/contact";
@@ -102,6 +103,7 @@ function Router() {
       <Route path="/stories" component={StoriesPage} />
       <Route path="/stories/:id" component={StoryDetailPage} />
       <Route path="/events" component={EventsPage} />
+      <Route path="/events/:id" component={EventDetailPage} />
       <Route path="/impact" component={ImpactPage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/faq" component={FaqPage} />
