@@ -1,0 +1,2 @@
+- [Object Storage Setup](object-storage-setup.md) — Replit App Storage (GCS-backed) used for image persistence; ImageUpload component uses presigned URL flow.
+- [Workflow Config](workflow-config.md) — Both services need PORT and BASE_PATH inline in workflow commands; workflows named "API Server" and "Gorilla Guardians Web".
