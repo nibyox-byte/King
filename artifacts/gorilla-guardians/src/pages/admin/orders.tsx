@@ -38,8 +38,13 @@ export default function AdminOrdersPage() {
 
   const { data: ordersData, isLoading } = useListOrders({ status: statusFilter !== "all" ? statusFilter as any : undefined, limit: 100 });
   const updateOrder = useUpdateOrder();
-  const orders = ordersData?.orders ?? demoOrders;
-  const filtered = orders.filter((o: any) => !search || `ORD-${String(o.id).padStart(3,"0")} ${o.customer?.name ?? ""}`.toLowerCase().includes(search.toLowerCase()));
+  const rawOrders = ordersData?.orders ?? demoOrders;
+  const orders = rawOrders.map((o: any) => ({
+    ...o,
+    _customerName: o.customer?.name ?? o.shippingAddress?.split(",")[0]?.trim() ?? "Customer",
+    _itemNames: o.items?.map((i: any) => i.productName ?? i.product?.name ?? "Item").join(", ") ?? "—",
+  }));
+  const filtered = orders.filter((o: any) => !search || `ORD-${String(o.id).padStart(3,"0")} ${o._customerName}`.toLowerCase().includes(search.toLowerCase()));
 
   const handleUpdateStatus = () => {
     if (!selectedOrder || !newStatus) return;
@@ -102,8 +107,8 @@ export default function AdminOrdersPage() {
                     {filtered.map((o: any) => (
                       <tr key={o.id} className="border-b border-border hover:bg-muted/20 transition-colors" data-testid={`row-admin-order-${o.id}`}>
                         <td className="px-4 py-3 font-medium text-primary">ORD-{String(o.id).padStart(3,"0")}</td>
-                        <td className="px-4 py-3">{o.customer?.name ?? "—"}</td>
-                        <td className="px-4 py-3 text-muted-foreground text-xs max-w-[160px] truncate">{o.items?.map((i: any) => i.product?.name ?? "Item").join(", ") ?? "—"}</td>
+                        <td className="px-4 py-3">{o._customerName}</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs max-w-[160px] truncate">{o._itemNames}</td>
                         <td className="px-4 py-3 text-muted-foreground">{new Date(o.createdAt).toLocaleDateString()}</td>
                         <td className="px-4 py-3"><Badge className={`text-xs ${STATUS_COLORS[o.status] ?? "bg-muted"}`}>{o.status}</Badge></td>
                         <td className="px-4 py-3 text-right font-bold">${o.total}</td>
@@ -124,7 +129,7 @@ export default function AdminOrdersPage() {
         <DialogContent>
           <DialogHeader><DialogTitle>Update Order</DialogTitle></DialogHeader>
           <div className="py-4 space-y-4">
-            <p className="text-sm text-muted-foreground">Order <span className="font-medium text-foreground">ORD-{String(selectedOrder?.id ?? "").padStart(3,"0")}</span> · <span className="font-medium text-foreground">{selectedOrder?.customer?.name}</span></p>
+            <p className="text-sm text-muted-foreground">Order <span className="font-medium text-foreground">ORD-{String(selectedOrder?.id ?? "").padStart(3,"0")}</span> · <span className="font-medium text-foreground">{selectedOrder?._customerName}</span></p>
             <Select value={newStatus} onValueChange={setNewStatus}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>

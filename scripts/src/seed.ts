@@ -3,7 +3,7 @@ import {
   db,
   usersTable, categoriesTable, artisansTable, productsTable,
   experiencesTable, storiesTable, eventsTable, notificationsTable,
-  reviewsTable, deliveryTrackingTable,
+  reviewsTable, deliveryTrackingTable, ordersTable, orderItemsTable,
 } from "@workspace/db";
 
 function hashPassword(password: string): string {
@@ -506,6 +506,129 @@ The goal for 2026: 500 artisan families, 100 conservation ambassadors, and a dir
       },
     ]).onConflictDoNothing();
     console.log("Notifications inserted");
+  }
+
+  // ORDERS
+  const allProducts = await db.select().from(productsTable);
+  const allUsers = await db.select().from(usersTable);
+  const customerUser = allUsers.find(u => u.role === "customer");
+  if (customerUser && allProducts.length >= 3) {
+    const p1 = allProducts[0];
+    const p2 = allProducts[1];
+    const p3 = allProducts[2];
+
+    const orderData = [
+      {
+        order: {
+          userId: customerUser.id,
+          subtotal: Number(p1.price) + Number(p2.price),
+          shippingCost: 25,
+          total: Number(p1.price) + Number(p2.price) + 25,
+          status: "shipped",
+          paymentMethod: "card",
+          paymentStatus: "paid",
+          shippingAddress: "Sarah Johnson, 45 Maple Street, New York, 10001, United States",
+          shippingType: "global",
+          trackingNumber: "GG-20260520-AB1234",
+          shippingCarrier: "DHL",
+        },
+        items: [
+          { product: p1, quantity: 1 },
+          { product: p2, quantity: 1 },
+        ],
+        delivery: {
+          status: "shipped",
+          carrier: "DHL",
+          estimatedDelivery: "2026-06-10",
+          currentLocation: "Amsterdam Sorting Hub",
+          timeline: JSON.stringify([
+            { status: "processing", description: "Order placed successfully", timestamp: "2026-05-20T10:00:00Z" },
+            { status: "packed", description: "Order packed and ready for collection", timestamp: "2026-05-21T14:00:00Z" },
+            { status: "shipped", description: "Package collected by DHL", timestamp: "2026-05-22T09:00:00Z" },
+          ]),
+        },
+      },
+      {
+        order: {
+          userId: customerUser.id,
+          subtotal: Number(p3.price),
+          shippingCost: 0,
+          total: Number(p3.price),
+          status: "processing",
+          paymentMethod: "momo",
+          paymentStatus: "paid",
+          shippingAddress: "Sarah Johnson, Gorilla Guardians Village, Musanze, Rwanda",
+          shippingType: "pickup",
+          trackingNumber: "GG-20260601-CD5678",
+          shippingCarrier: null,
+        },
+        items: [
+          { product: p3, quantity: 2 },
+        ],
+        delivery: {
+          status: "processing",
+          carrier: null,
+          estimatedDelivery: "2026-06-15",
+          currentLocation: "Gorilla Guardians Village Workshop",
+          timeline: JSON.stringify([
+            { status: "processing", description: "Order placed and artisan notified", timestamp: "2026-06-01T08:00:00Z" },
+          ]),
+        },
+      },
+      {
+        order: {
+          userId: customerUser.id,
+          subtotal: Number(allProducts[3]?.price ?? p1.price),
+          shippingCost: 25,
+          total: Number(allProducts[3]?.price ?? p1.price) + 25,
+          status: "delivered",
+          paymentMethod: "paypal",
+          paymentStatus: "paid",
+          shippingAddress: "Sarah Johnson, 10 Baker Street, London, W1U 3BW, United Kingdom",
+          shippingType: "global",
+          trackingNumber: "GG-20260501-EF9012",
+          shippingCarrier: "FedEx",
+        },
+        items: [
+          { product: allProducts[3] ?? p1, quantity: 1 },
+        ],
+        delivery: {
+          status: "delivered",
+          carrier: "FedEx",
+          estimatedDelivery: "2026-05-15",
+          currentLocation: "Delivered",
+          timeline: JSON.stringify([
+            { status: "processing", description: "Order placed", timestamp: "2026-05-01T10:00:00Z" },
+            { status: "packed", description: "Packed by artisan", timestamp: "2026-05-02T12:00:00Z" },
+            { status: "shipped", description: "Picked up by FedEx", timestamp: "2026-05-03T08:00:00Z" },
+            { status: "in_transit", description: "In transit to destination", timestamp: "2026-05-07T15:00:00Z" },
+            { status: "out_for_delivery", description: "Out for delivery", timestamp: "2026-05-14T09:00:00Z" },
+            { status: "delivered", description: "Delivered successfully", timestamp: "2026-05-14T14:30:00Z" },
+          ]),
+        },
+      },
+    ];
+
+    for (const entry of orderData) {
+      const [inserted] = await db.insert(ordersTable).values(entry.order as any).returning();
+      for (const item of entry.items) {
+        await db.insert(orderItemsTable).values({
+          orderId: inserted.id,
+          productId: item.product.id,
+          productName: item.product.name,
+          productImage: (item.product.images as string[])[0] ?? "",
+          quantity: item.quantity,
+          price: Number(item.product.price),
+          subtotal: Number(item.product.price) * item.quantity,
+        });
+      }
+      await db.insert(deliveryTrackingTable).values({
+        orderId: inserted.id,
+        trackingNumber: entry.order.trackingNumber ?? null,
+        ...entry.delivery,
+      } as any).onConflictDoNothing();
+    }
+    console.log(`Orders inserted: ${orderData.length}`);
   }
 
   console.log("Seeding complete!");
