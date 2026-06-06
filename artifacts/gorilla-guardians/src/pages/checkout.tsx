@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { CreditCard, Truck, Check, MapPin, Phone, Mail } from "lucide-react";
+import { CreditCard, Truck, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +34,7 @@ export default function CheckoutPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const [step, setStep] = useState<"shipping" | "payment" | "confirmation">("shipping");
+  const [step, setStep] = useState<"shipping" | "payment">("shipping");
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [shippingType, setShippingType] = useState<OrderInputShippingType>("global");
   const [form, setForm] = useState({
@@ -66,45 +66,21 @@ export default function CheckoutPage() {
       onSuccess: (order: any) => {
         clearCart.mutate(undefined);
         queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
-        setStep("confirmation");
+        const params = new URLSearchParams({
+          orderId: String(order.id ?? ""),
+          tracking: order.trackingNumber ?? "",
+          total: total.toFixed(2),
+          ref: `GG-PAY-${Date.now().toString(36).toUpperCase()}`,
+        });
+        setLocation(`/payment-success?${params.toString()}`);
       },
       onError: () => {
-        toast({ title: "Order submitted", description: "We'll send your confirmation by email shortly.", variant: "default" });
-        setStep("confirmation");
+        setLocation("/payment-failed?reason=Payment+could+not+be+processed.+Your+cart+is+saved.");
       },
     });
   };
 
   const updateForm = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
-
-  if (step === "confirmation") {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="max-w-2xl mx-auto px-4 py-24 text-center">
-          <div className="w-20 h-20 rounded-full bg-primary/10 mx-auto mb-6 flex items-center justify-center">
-            <Check className="w-10 h-10 text-primary" />
-          </div>
-          <h1 className="font-serif text-4xl font-bold mb-3 text-primary">Order Confirmed!</h1>
-          <p className="text-muted-foreground text-lg mb-6">Thank you for supporting Rwandan artisans. Your order is being prepared with care.</p>
-          <div className="bg-primary/5 rounded-xl p-6 mb-8 text-left">
-            <h3 className="font-semibold mb-3">What happens next?</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2"><Check className="w-4 h-4 text-primary shrink-0 mt-0.5" /> You'll receive an email confirmation shortly</li>
-              <li className="flex items-start gap-2"><Check className="w-4 h-4 text-primary shrink-0 mt-0.5" /> Your artisan will begin preparing your order</li>
-              <li className="flex items-start gap-2"><Check className="w-4 h-4 text-primary shrink-0 mt-0.5" /> Tracking information will be emailed when shipped</li>
-              <li className="flex items-start gap-2"><Check className="w-4 h-4 text-primary shrink-0 mt-0.5" /> Delivery in 7–14 business days</li>
-            </ul>
-          </div>
-          <div className="flex gap-4 justify-center">
-            <Button onClick={() => setLocation("/customer/orders")} className="bg-primary hover:bg-primary/90 text-primary-foreground" data-testid="button-view-orders">Track My Order</Button>
-            <Button variant="outline" onClick={() => setLocation("/products")} data-testid="button-continue-shopping">Continue Shopping</Button>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">

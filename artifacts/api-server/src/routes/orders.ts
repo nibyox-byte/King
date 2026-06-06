@@ -9,6 +9,7 @@ import {
   UpdateOrderParams,
 } from "@workspace/api-zod";
 import { createNotification, notifyAdmins } from "../lib/notificationHelper";
+import { sendEmail, emailTemplates } from "../lib/emailService";
 
 const router: IRouter = Router();
 
@@ -141,6 +142,27 @@ router.post("/orders", async (req, res): Promise<void> => {
     }
   }
 
+  // Send order confirmation email
+  const [customer] = await db.select({ id: usersTable.id, email: usersTable.email, name: usersTable.name }).from(usersTable).where(eq(usersTable.id, userId));
+  if (customer?.email) {
+    sendEmail({
+      to: customer.email,
+      toName: customer.name,
+      subject: `Order Confirmed — #${order.id}`,
+      html: emailTemplates.orderConfirmation({
+        customerName: customer.name,
+        orderId: order.id,
+        trackingNumber,
+        items: enrichedItems.map(i => ({ name: i.product.name, quantity: i.quantity, price: Number(i.product.price) })),
+        total: subtotal + shippingCost,
+        shippingAddress: parsed.data.shippingAddress,
+      }),
+      template: "order_confirmation",
+      userId,
+      metadata: { orderId: order.id, trackingNumber },
+    }).catch(err => console.error("[orders] email error:", err));
+  }
+
   res.status(201).json(await buildOrder(order));
 });
 
@@ -183,6 +205,35 @@ router.patch("/orders/:id", async (req, res): Promise<void> => {
       message: `Status changed from ${prevOrder.status} to ${parsed.data.status}`,
       link: `/admin/orders`,
     });
+
+    // Send email on key status changes
+    const [customer] = await db.select({ id: usersTable.id, email: usersTable.email, name: usersTable.name }).from(usersTable).where(eq(usersTable.id, order.userId));
+    if (customer?.email) {
+      if (parsed.data.status === "shipped") {
+        sendEmail({
+          to: customer.email,
+          toName: customer.name,
+          subject: `Your Order #${order.id} Has Been Shipped!`,
+          html: emailTemplates.orderShipped({
+            customerName: customer.name,
+            orderId: order.id,
+            trackingNumber: order.trackingNumber ?? "",
+            carrier: order.shippingCarrier ?? undefined,
+          }),
+          template: "order_shipped",
+          userId: order.userId,
+        }).catch(err => console.error("[orders] email error:", err));
+      } else if (parsed.data.status === "delivered") {
+        sendEmail({
+          to: customer.email,
+          toName: customer.name,
+          subject: `Your Order #${order.id} Has Been Delivered!`,
+          html: emailTemplates.orderDelivered({ customerName: customer.name, orderId: order.id }),
+          template: "order_delivered",
+          userId: order.userId,
+        }).catch(err => console.error("[orders] email error:", err));
+      }
+    }
   }
 
   res.json(await buildOrder(order));

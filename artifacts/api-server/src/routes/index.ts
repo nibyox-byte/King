@@ -15,6 +15,7 @@ import storageRouter from "./storage";
 import streamRouter from "./stream";
 import deliveryRouter from "./delivery";
 import homepageRouter from "./homepage";
+import emailsRouter from "./emails";
 
 const router: IRouter = Router();
 
@@ -33,6 +34,7 @@ router.use(notificationsRouter);
 router.use(messagesRouter);
 router.use(deliveryRouter);
 router.use(homepageRouter);
+router.use(emailsRouter);
 router.use(miscRouter);
 
 export default router;

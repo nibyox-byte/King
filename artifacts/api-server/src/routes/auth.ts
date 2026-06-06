@@ -10,6 +10,7 @@ import {
   UpdateUserBody,
 } from "@workspace/api-zod";
 import { createHash } from "crypto";
+import { sendEmail, emailTemplates } from "../lib/emailService";
 
 const router: IRouter = Router();
 
@@ -51,6 +52,17 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     role,
   }).returning();
   (req.session as any).userId = user.id;
+
+  // Send welcome email
+  sendEmail({
+    to: user.email,
+    toName: user.name,
+    subject: "Welcome to Gorilla Guardians Village! 🦍",
+    html: emailTemplates.welcomeEmail({ name: user.name }),
+    template: "welcome",
+    userId: user.id,
+  }).catch(err => console.error("[auth] welcome email error:", err));
+
   res.status(201).json({ user: safeUser(user), token: `session-${user.id}` });
 });
 

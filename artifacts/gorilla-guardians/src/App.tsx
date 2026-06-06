@@ -29,6 +29,9 @@ import NotFound from "@/pages/not-found";
 import AccessDeniedPage from "@/pages/access-denied";
 import NotificationsPage from "@/pages/notifications";
 import TrackPage from "@/pages/track";
+import PaymentSuccessPage from "@/pages/payment-success";
+import PaymentFailedPage from "@/pages/payment-failed";
+import BookingSuccessPage from "@/pages/booking-success";
 
 // Delivery / order detail pages
 import CustomerOrderDetail from "@/pages/customer/order-detail";
@@ -51,6 +54,7 @@ import AdminFeedback from "@/pages/admin/feedback";
 import AdminSettings from "@/pages/admin/settings";
 import AdminBookings from "@/pages/admin/bookings";
 import AdminHomepage from "@/pages/admin/homepage";
+import AdminEmailLogs from "@/pages/admin/email-logs";
 
 // Staff pages
 import StaffDashboard from "@/pages/staff/dashboard";
@@ -125,6 +129,9 @@ function Router() {
       <Route path="/notifications" component={NotificationsPage} />
       <Route path="/track" component={TrackPage} />
       <Route path="/track/:trackingNumber" component={TrackPage} />
+      <Route path="/payment-success" component={PaymentSuccessPage} />
+      <Route path="/payment-failed" component={PaymentFailedPage} />
+      <Route path="/booking-success" component={BookingSuccessPage} />
 
       {/* Shared profile — any authenticated role */}
       <Route path="/profile">
@@ -242,6 +249,9 @@ function Router() {
       </Route>
       <Route path="/admin/homepage">
         {() => <ProtectedRoute component={AdminHomepage} roles={["admin", "super_admin"]} />}
+      </Route>
+      <Route path="/admin/email-logs">
+        {() => <ProtectedRoute component={AdminEmailLogs} roles={["admin", "super_admin"]} />}
       </Route>
 
       {/* Catch-all */}

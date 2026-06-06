@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRoute, Link } from "wouter";
+import { useRoute, useLocation, Link } from "wouter";
 import { Clock, Users, MapPin, Star, CheckCircle, Calendar, TreePine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 
 export default function ExperienceDetailPage() {
   const [, params] = useRoute("/experiences/:id");
+  const [, setLocation] = useLocation();
   const id = Number(params?.id);
   const { toast } = useToast();
 
@@ -51,11 +52,24 @@ export default function ExperienceDetailPage() {
   const handleBook = () => {
     if (!date) { toast({ title: "Please select a date", variant: "destructive" }); return; }
     createBooking.mutate({ data: { experienceId: id, date, participants, specialRequests: undefined } }, {
-      onSuccess: () => {
-        toast({ title: "Booking confirmed!", description: `Your ${exp?.title} booking for ${participants} person(s) on ${date} is confirmed.` });
+      onSuccess: (booking: any) => {
+        const params = new URLSearchParams({
+          experience: exp?.title ?? "Experience",
+          date,
+          participants: String(participants),
+          total: String(exp ? exp.price * participants : ""),
+          bookingId: String(booking?.id ?? ""),
+        });
+        setLocation(`/booking-success?${params.toString()}`);
       },
       onError: () => {
-        toast({ title: "Booking submitted", description: "We will confirm your booking shortly.", variant: "default" });
+        const params = new URLSearchParams({
+          experience: exp?.title ?? "Experience",
+          date,
+          participants: String(participants),
+          total: String(exp ? exp.price * participants : ""),
+        });
+        setLocation(`/booking-success?${params.toString()}`);
       },
     });
   };

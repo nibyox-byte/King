@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Package, Users, BookOpen, ShoppingBag, Star, MessageSquare,
   Bell, FileText, Calendar, BarChart2, Heart, LogOut, ChevronLeft, ChevronRight,
-  Megaphone, TreePine, Truck, Settings, User, DollarSign, PlusCircle, Globe,
+  Megaphone, TreePine, Truck, Settings, User, DollarSign, PlusCircle, Globe, Mail,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/events", label: "Events", icon: Calendar, roles: ["admin", "super_admin"] },
   { href: "/admin/homepage", label: "Homepage CMS", icon: Globe, roles: ["admin", "super_admin"] },
   { href: "/admin/notifications", label: "Notifications", icon: Bell, roles: ["admin", "super_admin"] },
+  { href: "/admin/email-logs", label: "Email Logs", icon: Mail, roles: ["admin", "super_admin"] },
   { href: "/admin/feedback", label: "Feedback", icon: Megaphone, roles: ["admin", "super_admin"] },
 ];
 

@@ -2,3 +2,4 @@
 - [Workflow Config](workflow-config.md) — Both services need PORT and BASE_PATH inline in workflow commands; workflows named "API Server" and "Gorilla Guardians Web".
 - [Gorilla Guardians DB setup](gorilla-guardians-db.md) — DB schema push + seed required before any API works; stale vite process on port 24775 blocks workflow restart.
 - [Gorilla Guardians orders data shape](gorilla-guardians-orders.md) — Real API orders use `productName`/`shippingAddress`, not demo-data `product.name`/`customer.name`.
+- [Email System](email-system.md) — Email service uses Resend API (logs to email_logs table when no key set); templates in emailService.ts; admin logs at /admin/email-logs.

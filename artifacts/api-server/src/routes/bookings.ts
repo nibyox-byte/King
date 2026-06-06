@@ -9,6 +9,7 @@ import {
   UpdateBookingParams,
 } from "@workspace/api-zod";
 import { createNotification, notifyAdmins } from "../lib/notificationHelper";
+import { sendEmail, emailTemplates } from "../lib/emailService";
 
 const router: IRouter = Router();
 
@@ -90,6 +91,27 @@ router.post("/bookings", async (req, res): Promise<void> => {
     link: `/admin/bookings`,
   });
 
+  // Send booking confirmation email asynchronously
+  const [customer] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (customer?.email) {
+    sendEmail({
+      to: customer.email,
+      toName: customer.name,
+      subject: `Booking Confirmed: ${exp.title}`,
+      html: emailTemplates.bookingConfirmation({
+        customerName: customer.name,
+        experienceTitle: exp.title,
+        date: parsed.data.date,
+        participants: parsed.data.participants,
+        totalAmount,
+        bookingId: booking.id,
+      }),
+      template: "booking_confirmation",
+      userId,
+      metadata: { bookingId: booking.id, experienceId: exp.id },
+    }).catch(err => console.error("[bookings] email error:", err));
+  }
+
   res.status(201).json(await buildBooking(booking));
 });
 
@@ -126,6 +148,42 @@ router.patch("/bookings/:id", async (req, res): Promise<void> => {
       message: statusMessages[parsed.data.status] ?? `Your booking status changed to ${parsed.data.status}`,
       link: `/customer/bookings`,
     });
+
+    // Send status email
+    const [customer] = await db.select().from(usersTable).where(eq(usersTable.id, booking.userId));
+    const [exp] = await db.select().from(experiencesTable).where(eq(experiencesTable.id, booking.experienceId));
+    if (customer?.email && exp) {
+      if (parsed.data.status === "approved" || parsed.data.status === "confirmed") {
+        sendEmail({
+          to: customer.email,
+          toName: customer.name,
+          subject: `Booking Approved: ${exp.title}`,
+          html: emailTemplates.bookingApproved({
+            customerName: customer.name,
+            experienceTitle: exp.title,
+            date: booking.date,
+            participants: booking.participants,
+            bookingId: booking.id,
+          }),
+          template: "booking_approved",
+          userId: booking.userId,
+        }).catch(err => console.error("[bookings] email error:", err));
+      } else if (parsed.data.status === "cancelled") {
+        sendEmail({
+          to: customer.email,
+          toName: customer.name,
+          subject: `Booking Cancelled: ${exp.title}`,
+          html: emailTemplates.bookingCancelled({
+            customerName: customer.name,
+            experienceTitle: exp.title,
+            date: booking.date,
+            bookingId: booking.id,
+          }),
+          template: "booking_cancelled",
+          userId: booking.userId,
+        }).catch(err => console.error("[bookings] email error:", err));
+      }
+    }
   }
 
   res.json(await buildBooking(booking));

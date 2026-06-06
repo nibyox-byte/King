@@ -16,3 +16,4 @@ export * from "./cart";
 export * from "./donations";
 export * from "./delivery";
 export * from "./homepage";
+export * from "./emailLogs";
