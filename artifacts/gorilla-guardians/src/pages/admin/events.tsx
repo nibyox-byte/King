@@ -29,15 +29,29 @@ export default function AdminEventsPage() {
 
   const events = Array.isArray(eventsData) ? eventsData : [];
 
+  const buildEventPayload = (item: any) => ({
+    title: item.title,
+    description: item.description ?? "",
+    type: item.type ?? "festival",
+    image: item.image || undefined,
+    startDate: item.startDate || undefined,
+    endDate: item.endDate || undefined,
+    location: item.location ?? undefined,
+    active: item.active ?? true,
+  });
+
   const handleSave = () => {
     if (!editItem?.title || !editItem?.startDate) return;
+    const payload = buildEventPayload(editItem);
     if (isNew) {
-      createEvent.mutate({ data: editItem }, {
+      createEvent.mutate({ data: payload as any }, {
         onSuccess: () => { toast({ title: "Event created" }); setEditItem(null); queryClient.invalidateQueries({ queryKey: getListEventsQueryKey() }); },
+        onError: (err: any) => { toast({ title: "Failed to save event", description: err?.message ?? "Please try again.", variant: "destructive" }); },
       });
     } else {
-      updateEvent.mutate({ id: editItem.id, data: editItem }, {
+      updateEvent.mutate({ id: editItem.id, data: payload }, {
         onSuccess: () => { toast({ title: "Event updated" }); setEditItem(null); queryClient.invalidateQueries({ queryKey: getListEventsQueryKey() }); },
+        onError: (err: any) => { toast({ title: "Failed to save event", description: err?.message ?? "Please try again.", variant: "destructive" }); },
       });
     }
   };

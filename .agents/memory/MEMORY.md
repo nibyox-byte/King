@@ -4,3 +4,4 @@
 - [Gorilla Guardians orders data shape](gorilla-guardians-orders.md) — Real API orders use `productName`/`shippingAddress`, not demo-data `product.name`/`customer.name`.
 - [Express route ordering](express-route-ordering.md) — Static/specific routes (/bookings/capacity, /bookings/verify, /bookings/ref/:ref) MUST be registered before parameterized routes (/bookings/:id) or Express captures them first.
 - [Booking system](booking-system.md) — GG-XXXXXXXX refs via randomBytes(4).toString('hex').toUpperCase(); qrcode.react v4 installed; guidesTable + bookingHistoryTable in schema.
+- [Null values in admin PATCH payloads](null-zod-patch.md) — Zod string().optional() rejects null; admin pages must strip null→undefined before mutation; events page was the main offender passing raw editItem.

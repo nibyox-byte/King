@@ -49,6 +49,9 @@ export default function AdminExperiencesPage() {
           setEditItem(null);
           queryClient.invalidateQueries({ queryKey: getListExperiencesQueryKey() });
         },
+        onError: (err: any) => {
+          toast({ title: "Failed to save experience", description: err?.message ?? "Please try again.", variant: "destructive" });
+        },
       });
     } else {
       updateExp.mutate({ id: editItem.id, data: payload }, {
@@ -56,6 +59,9 @@ export default function AdminExperiencesPage() {
           toast({ title: "Experience updated" });
           setEditItem(null);
           queryClient.invalidateQueries({ queryKey: getListExperiencesQueryKey() });
+        },
+        onError: (err: any) => {
+          toast({ title: "Failed to save experience", description: err?.message ?? "Please try again.", variant: "destructive" });
         },
       });
     }

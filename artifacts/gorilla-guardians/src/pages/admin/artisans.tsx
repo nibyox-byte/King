@@ -53,6 +53,9 @@ export default function AdminArtisansPage() {
           setEditItem(null);
           queryClient.invalidateQueries({ queryKey: getListArtisansQueryKey() });
         },
+        onError: (err: any) => {
+          toast({ title: "Failed to save artisan", description: err?.message ?? "Please try again.", variant: "destructive" });
+        },
       });
     } else {
       updateArtisan.mutate({ id: editItem.id, data: payload }, {
@@ -60,6 +63,9 @@ export default function AdminArtisansPage() {
           toast({ title: "Artisan updated" });
           setEditItem(null);
           queryClient.invalidateQueries({ queryKey: getListArtisansQueryKey() });
+        },
+        onError: (err: any) => {
+          toast({ title: "Failed to save artisan", description: err?.message ?? "Please try again.", variant: "destructive" });
         },
       });
     }
